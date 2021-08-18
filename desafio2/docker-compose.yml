@@ -9,7 +9,7 @@
 # npm install express --save 
 # npm install mysql --save
 
-version: '3.9'
+version: '3'
 services:
   app:
     build:
@@ -21,8 +21,8 @@ services:
     command: node index.js
     networks:
       - node-network
-    volumes:
-      - ./node:/usr/src/app
+    # volumes:
+    #   - ./node:/usr/src/app
     tty: true
     # Será acessado pelo nginx
     # ports:
@@ -43,7 +43,7 @@ services:
       - app
 
   db:
-    image: mysql:8.0.26
+    image: mysql:5.7
     command: --innodb-use-native-aio=0
     container_name: db
     restart: always
