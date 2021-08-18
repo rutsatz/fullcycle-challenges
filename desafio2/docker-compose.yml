@@ -1,0 +1,61 @@
+# docker-compose up -d
+# docker exec -it db bash
+# mysql -u root -p
+# root
+# use nodedb;
+# create table people (id int not null auto_increment, name varchar (255), primary key(id));
+
+# npm init
+# npm install express --save 
+# npm install mysql --save
+
+version: '3.9'
+services:
+  app:
+    build:
+      context: node
+      dockerfile: Dockerfile.prod
+    container_name: app
+    entrypoint: dockerize -wait tcp://db:3306 -timeout 20s docker-entrypoint.sh
+    # Deixa o server no ar rodando.
+    command: node index.js
+    networks:
+      - node-network
+    volumes:
+      - ./node:/usr/src/app
+    tty: true
+    # Será acessado pelo nginx
+    # ports:
+    #   - "3000:3000"
+    depends_on:
+      - db
+
+  nginx:
+    build:
+      context: ./nginx
+    image: rutsatz/nginx
+    container_name: nginx
+    networks:
+      - node-network
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0.26
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - node-network
+
+networks:
+  node-network:
+    driver: bridge
